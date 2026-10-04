@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #B6C3B0;       /* overwritten at runtime to match the video backdrop */
+  --ghost: #ADBAA7;
+  --line: rgba(16, 32, 31, 0.14);
+  --accent: #E8732A;
+  --accent-2: #0E7C86;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -11,39 +20,52 @@ body {
 }
 
 ::selection {
-  background: #E8A33D;
-  color: #10131A;
+  background: #E8732A;
+  color: #ffffff;
 }
 
+/* Instrument Serif only ships one weight — never fake-bold it */
 .font-display {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  font-weight: 400 !important;
+  letter-spacing: -0.01em;
+}
+
+.kicker {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(16, 32, 31, 0.65);
+}
+.kicker b {
+  font-weight: 500;
+  color: #E8732A;
 }
 
 .glass-nav {
-  background: rgba(3, 16, 31, 0.72);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.18);
+  background: rgba(233, 237, 228, 0.78);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
+/* destination cards: hairline + soft rounded corners instead of clipped stamps */
 .stamp-card {
   position: relative;
-  border: 1px solid rgba(16,19,26,0.1);
-  clip-path: polygon(0% 4%, 4% 0%, 96% 0%, 100% 4%, 100% 96%, 96% 100%, 4% 100%, 0% 96%);
+  border: 1px solid var(--line);
+  border-radius: 22px !important;
+  box-shadow: 0 18px 40px -22px rgba(16, 32, 31, 0.35);
 }
 
 .dark-stamp-card {
-  border: 1px solid rgba(247,244,236,0.14);
-  clip-path: polygon(0% 4%, 4% 0%, 96% 0%, 100% 4%, 100% 96%, 96% 100%, 4% 100%, 0% 96%);
+  border: 1px solid rgba(233, 237, 228, 0.12);
+  border-radius: 22px !important;
 }
 
 .compass-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(16,19,26,0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(16, 32, 31, 0.25), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -59,6 +81,6 @@ body {
   width: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(16,19,26,0.25);
+  background: rgba(16, 32, 31, 0.25);
   border-radius: 999px;
 }
