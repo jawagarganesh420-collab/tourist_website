@@ -1,214 +1,242 @@
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
 import SearchBar from './SearchBar.jsx'
-import heroBackground from '../assets/i.jpeg'
+import './Hero.css'
+
+// Hosted hero clip: a kingfisher flies in and lands on a twig.
+// Swap this for your own video if you like.
+const VIDEO_URL = 'https://thinkingods.com/demos/kingfisher-hero/hero.mp4'
+
+// Second of the clip at which the bird lands and the page UI reveals itself.
+// Change this to match your clip.
+const REVEAL_AT = 4.3
+const HARD_TIMEOUT_MS = 9000
+const SEEN_KEY = 'wanderai_hero_seen'
 
 export default function Hero({ onSearch }) {
+  const heroRef = useRef(null)
+  const videoRef = useRef(null)
+  const replayRef = useRef(() => {})
+
+  // Reduced-motion users, and anyone who already watched the intro this session,
+  // get the final frame and the full UI immediately.
+  const [instant] = useState(() => {
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true
+      return sessionStorage.getItem(SEEN_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    const hero = heroRef.current
+    const video = videoRef.current
+    if (!hero || !video) return
+
+    const root = document.documentElement
+    let revealed = false
+    let started = false
+    const timers = []
+
+    function paintThumbs() {
+      const vw = video.videoWidth
+      const vh = video.videoHeight
+      if (!vw || !vh) return
+      hero.querySelectorAll('canvas[data-crop]').forEach((canvas) => {
+        try {
+          const [x, y, s] = canvas.dataset.crop.split(',').map(Number)
+          const size = s * vw
+          canvas
+            .getContext('2d')
+            .drawImage(video, x * vw, y * vh, size, size, 0, 0, canvas.width, canvas.height)
+          canvas.classList.add('is-on')
+        } catch {
+          // keep the gradient placeholder
+        }
+      })
+    }
+
+    function reveal() {
+      if (revealed) return
+      revealed = true
+      hero.classList.add('is-revealed')
+      paintThumbs()
+      try {
+        sessionStorage.setItem(SEEN_KEY, '1')
+      } catch {}
+    }
+
+    // Make the page backdrop match the footage's backdrop exactly
+    function matchBackdrop() {
+      try {
+        const vw = video.videoWidth
+        const vh = video.videoHeight
+        if (!vw || !vh) return
+        const c = document.createElement('canvas')
+        c.width = 1
+        c.height = 1
+        const ctx = c.getContext('2d', { willReadFrequently: true })
+        ctx.drawImage(video, vw * 0.94, vh * 0.12, 1, 1, 0, 0, 1, 1)
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data
+        root.style.setProperty('--bg', `rgb(${r}, ${g}, ${b})`)
+        root.style.setProperty(
+          '--ghost',
+          `rgb(${Math.round(r * 0.955)}, ${Math.round(g * 0.955)}, ${Math.round(b * 0.955)})`
+        )
+      } catch {
+        // readback blocked (cross-origin / file://) — CSS fallback colours stay
+      }
+    }
+
+    function start() {
+      if (started) return
+      started = true
+      matchBackdrop()
+
+      if (instant) {
+        video.addEventListener('seeked', reveal, { once: true })
+        if (Number.isFinite(video.duration)) video.currentTime = Math.max(video.duration - 0.05, 0)
+        timers.push(setTimeout(reveal, 1500))
+        return
+      }
+
+      const p = video.play()
+      if (p && typeof p.catch === 'function') p.catch(reveal)
+    }
+
+    function onTimeUpdate() {
+      if (video.currentTime >= REVEAL_AT) reveal()
+    }
+
+    function replay() {
+      revealed = false
+      hero.classList.remove('is-revealed')
+      hero.querySelectorAll('canvas.is-on').forEach((c) => c.classList.remove('is-on'))
+      video.currentTime = 0
+      const p = video.play()
+      if (p && typeof p.catch === 'function') p.catch(reveal)
+    }
+    replayRef.current = replay
+
+    video.addEventListener('loadeddata', start)
+    video.addEventListener('timeupdate', onTimeUpdate)
+    video.addEventListener('ended', reveal)
+    video.addEventListener('error', reveal)
+    timers.push(setTimeout(reveal, HARD_TIMEOUT_MS))
+
+    // loadeddata may already have fired
+    if (video.readyState >= 2) start()
+
+    return () => {
+      timers.forEach(clearTimeout)
+      video.removeEventListener('loadeddata', start)
+      video.removeEventListener('timeupdate', onTimeUpdate)
+      video.removeEventListener('ended', reveal)
+      video.removeEventListener('error', reveal)
+    }
+  }, [instant])
+
+  function scrollToExplore() {
+    document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
-    <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-ink">
-
-      {/* ================= BACKGROUND ================= */}
-
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${heroBackground})`,
-        }}
-      />
-
-      {/* Main cinematic dark overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#020817]/95 via-[#020817]/65 to-[#020817]/20" />
-
-      {/* Bottom fade */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#020817]/85 via-transparent to-[#020817]/25" />
-
-      {/* Subtle blue glow */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[300px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
-
-      {/* Right-side atmospheric glow */}
-      <div className="absolute bottom-10 right-10 w-[450px] h-[250px] bg-cyan-400/10 blur-[120px] rounded-full pointer-events-none" />
-
-      {/* ================= FLOATING LIGHT EFFECTS ================= */}
-
-      <div
-        className="absolute top-24 left-10 w-72 h-24 bg-white/5 rounded-full blur-3xl animate-drift pointer-events-none"
-      />
-
-      <div
-        className="absolute top-40 right-10 w-96 h-32 bg-white/5 rounded-full blur-3xl animate-drift pointer-events-none"
-        style={{ animationDelay: '4s' }}
-      />
-
-      <div
-        className="absolute bottom-24 left-1/3 w-64 h-20 bg-white/5 rounded-full blur-3xl animate-drift pointer-events-none"
-        style={{ animationDelay: '9s' }}
-      />
-
-      {/* ================= AIRPLANE ================= */}
-
-      <div
-        className="absolute top-[22%] left-[8%] text-3xl opacity-70 animate-flyby pointer-events-none"
-        style={{ animationDelay: '2s' }}
-      >
-        ✈️
-      </div>
-
-      {/* ================= COMPASS ================= */}
-
-      <div
-        className="absolute bottom-16 right-16 text-6xl opacity-10 animate-spinSlow hidden md:block pointer-events-none"
-      >
-        🧭
-      </div>
-
-      {/* ================= SMALL STARS / PARTICLES ================= */}
-
-      {[...Array(18)].map((_, i) => (
-        <span
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-white/70 animate-twinkle pointer-events-none"
-          style={{
-            top: `${(i * 37) % 90}%`,
-            left: `${(i * 61) % 95}%`,
-            animationDelay: `${(i % 6) * 0.6}s`,
-          }}
+    <section ref={heroRef} className={`kf-hero ${instant ? 'is-instant' : ''}`}>
+      {/* ---------- media layer (clipped) ---------- */}
+      <div className="kf-media">
+        <video
+          ref={videoRef}
+          className="kf-video"
+          src={VIDEO_URL}
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
         />
-      ))}
-
-      {/* ================= CONTENT ================= */}
-
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 pt-24 pb-16">
-
-        <div className="max-w-4xl">
-
-          {/* Small label */}
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="mb-6"
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-sm font-medium shadow-lg">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              Your AI guide to everywhere
-            </span>
-          </motion.div>
-
-          {/* Main heading */}
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.05]"
-          >
-            Where will you
-            <br />
-
-            <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-white bg-clip-text text-transparent">
-              wander next?
-            </span>
-
-            <span className="ml-3">
-              ✈️
-            </span>
-          </motion.h1>
-
-          {/* Description */}
-
-          <motion.p
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.25 }}
-            className="mt-6 max-w-2xl text-lg sm:text-xl text-white/75 leading-relaxed"
-          >
-            Tell WanderAI where you're going and discover the places,
-            experiences and hidden gems worth exploring.
-          </motion.p>
-
-          {/* ================= SEARCH AREA ================= */}
-
-          <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative z-[100] mt-9 max-w-3xl"
-          >
-            <div className="relative z-[100] p-2 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-xl shadow-2xl">
-              <SearchBar
-                onSearch={onSearch}
-                large
-              />
-            </div>
-          </motion.div>
-
-          {/* ================= QUICK CATEGORIES ================= */}
-
-          {/*
-            IMPORTANT:
-            This section is deliberately lower than the
-            search autocomplete.
-
-            When SearchBar opens its suggestions,
-            those suggestions will appear above these
-            buttons.
-          */}
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="relative z-0 flex flex-wrap gap-3 mt-6"
-          >
-            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md text-white/80 text-sm">
-              🏔️ Adventure
-            </span>
-
-            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md text-white/80 text-sm">
-              🏖️ Beaches
-            </span>
-
-            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md text-white/80 text-sm">
-              🍜 Food
-            </span>
-
-            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md text-white/80 text-sm">
-              🏙️ Cities
-            </span>
-          </motion.div>
-
+        <div className="kf-shade kf-shade-l" />
+        <div className="kf-shade kf-shade-b" />
+        {/* giant word sits BEHIND the bird via mix-blend-mode: darken */}
+        <div className="kf-ghost" aria-hidden="true">
+          Wander<em>AI</em>
         </div>
-
-        {/* ================= BOTTOM INFO ================= */}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="relative z-0 mt-16 flex flex-wrap gap-8 text-white/60 text-sm"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🌍</span>
-            <span>Explore anywhere</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xl">✨</span>
-            <span>AI-powered discoveries</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📍</span>
-            <span>Find hidden gems</span>
-          </div>
-        </motion.div>
-
       </div>
 
-      {/* ================= BOTTOM EDGE ================= */}
+      {/* ---------- left copy + search ---------- */}
+      <div className="kf-copy">
+        <p className="kf-eyebrow rv" style={{ '--d': 0 }}>
+          <span className="kf-rule" />
+          Your AI guide to everywhere
+        </p>
+        <h1 className="kf-h1 font-display rv" style={{ '--d': 1 }}>
+          Where will you wander <em>next?</em>
+        </h1>
+        <p className="kf-lede rv" style={{ '--d': 2 }}>
+          Tell WanderAI where you&rsquo;re going and discover the places, experiences and hidden gems
+          worth exploring &mdash; then see the exact spot on the map.
+        </p>
+        <div className="kf-search rv" style={{ '--d': 3 }}>
+          <SearchBar onSearch={onSearch} large />
+        </div>
+      </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-ink to-transparent pointer-events-none z-0" />
+      {/* ---------- right cluster ---------- */}
+      <div className="kf-cluster">
+        <p className="kf-steps rv" style={{ '--d': 4 }}>
+          Search <i>·</i> Discover <i>·</i> Visit <i>·</i> Locate
+        </p>
+        <div className="kf-cards">
+          <Card
+            delay={5}
+            head="Discover"
+            idx="01"
+            caption="Look closer"
+            crop="0.555,0.335,0.22"
+            stat="Any city"
+          />
+          <Card
+            delay={6}
+            head="Locate"
+            idx="02"
+            caption="Take off"
+            crop="0.43,0.60,0.24"
+            stat="Exact pin"
+            offset
+          />
+        </div>
+      </div>
 
+      {/* ---------- bottom strip ---------- */}
+      <div className="kf-strip rv" style={{ '--d': 7 }}>
+        <button type="button" className="kf-scroll" onClick={scrollToExplore}>
+          Scroll to explore ↓
+        </button>
+        <span className="kf-loc">Cities · Countries · Landmarks</span>
+        <button type="button" className="kf-replay" onClick={() => replayRef.current()}>
+          ↻ Replay
+        </button>
+      </div>
     </section>
+  )
+}
+
+function Card({ delay, head, idx, caption, crop, stat, offset }) {
+  return (
+    <article className={`kf-card rv ${offset ? 'is-offset' : ''}`} style={{ '--d': delay }}>
+      <div className="kf-card-head">
+        {head} / {idx}
+      </div>
+      <div className="kf-thumb">
+        <canvas width="240" height="240" data-crop={crop} />
+        <span className="kf-thumb-cap">{caption}</span>
+      </div>
+      <div className="kf-card-foot">
+        <span className="kf-stat font-display">{stat}</span>
+        <span className="kf-dots">
+          <i className="on" />
+          <i />
+          <i />
+        </span>
+      </div>
+    </article>
   )
 }
