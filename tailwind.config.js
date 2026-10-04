@@ -5,54 +5,38 @@ export default {
     extend: {
       colors: {
         ink: {
-          DEFAULT: '#10131A',
-          soft: '#1B2130',
+          DEFAULT: '#10201F',
+          soft: '#172A28',
         },
         paper: {
-          DEFAULT: '#F7F4EC',
-          dim: '#EFEADD',
+          DEFAULT: '#E9EDE4',
+          dim: '#DDE3D6',
+        },
+        sage: {
+          DEFAULT: '#B6C3B0',
+          ghost: '#ADBAA7',
         },
         compass: {
-          gold: '#E8A33D',
-          teal: '#1B6E6B',
+          gold: '#E8732A', // primary accent (orange)
+          teal: '#0E7C86',
           sky: '#4A90A4',
           coral: '#E1613F',
         },
-        ink80: 'rgba(16,19,26,0.8)',
+        ink80: 'rgba(16,32,31,0.8)',
       },
       fontFamily: {
-        display: ['"Playfair Display"', 'serif'],
-        body: ['"Space Grotesk"', 'sans-serif'],
-      },
-      backgroundImage: {
-        'grain': "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)",
+        display: ['"Instrument Serif"', 'Georgia', '"Times New Roman"', 'serif'],
+        body: ['Manrope', 'system-ui', '-apple-system', '"Segoe UI"', 'Arial', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'Menlo', 'Consolas', 'monospace'],
       },
       keyframes: {
-        drift: {
-          '0%': { transform: 'translateX(-10%) translateY(0)' },
-          '50%': { transform: 'translateX(6%) translateY(-4%)' },
-          '100%': { transform: 'translateX(-10%) translateY(0)' },
-        },
-        flyby: {
-          '0%': { transform: 'translate(-10vw, 0) rotate(6deg)', opacity: 0 },
-          '10%': { opacity: 1 },
-          '90%': { opacity: 1 },
-          '100%': { transform: 'translate(110vw, -6vh) rotate(6deg)', opacity: 0 },
-        },
         spinSlow: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
         },
-        twinkle: {
-          '0%, 100%': { opacity: 0.15 },
-          '50%': { opacity: 0.9 },
-        },
       },
       animation: {
-        drift: 'drift 22s ease-in-out infinite',
-        flyby: 'flyby 26s linear infinite',
-        spinSlow: 'spinSlow 40s linear infinite',
-        twinkle: 'twinkle 3.4s ease-in-out infinite',
+        spinSlow: 'spinSlow 8s linear infinite',
       },
     },
   },
