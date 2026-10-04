@@ -434,7 +434,7 @@ export default function SearchBar({ onSearch, large = false }) {
               'var(--accent, #E8A33D)',
           }}
         >
-          ✨ Explore
+          Explore →
         </button>
       </form>
 
@@ -550,7 +550,7 @@ export default function SearchBar({ onSearch, large = false }) {
                       .trim()
                   )
                 }
-                className="text-sm text-paper/80 border border-paper/25 rounded-full px-3.5 py-1.5 hover:bg-paper/10 transition-colors"
+                className="text-sm text-ink/70 border border-ink/20 rounded-full px-3.5 py-1.5 hover:bg-ink/5 transition-colors"
               >
                 {ex}
               </button>
