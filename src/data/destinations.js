@@ -31,7 +31,7 @@ export const TRAVEL_STYLES = [
 
 // Destination-driven visual theme, applied subtly via CSS variables (see hooks/useTheme.js)
 export const REGION_THEMES = {
-  default: { accent: '#E8A33D', accent2: '#1B6E6B', mood: 'wanderer' },
+  default: { accent: '#E8732A', accent2: '#0E7C86', mood: 'wanderer' },
   kerala: { accent: '#1B6E6B', accent2: '#3AAFA9', mood: 'tropical' },
   paris: { accent: '#C98A4B', accent2: '#8B5E83', mood: 'romantic' },
   dubai: { accent: '#D9A441', accent2: '#B5651D', mood: 'desert' },
