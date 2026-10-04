@@ -6,6 +6,10 @@ import { findPlace, getDestinationsForPlace } from '../data/destinations.js'
 
 const BUDGETS = ['Budget', 'Mid-range', 'Luxury']
 
+const FIELD =
+  'w-full rounded-xl border border-ink/15 bg-white/60 px-4 py-2.5 outline-none focus:border-ink/50 transition-colors'
+const LABEL = 'font-mono text-[10px] tracking-[0.16em] uppercase text-ink/60 mb-2 block'
+
 export default function TripPlanner() {
   const [destinationQuery, setDestinationQuery] = useState('')
   const [days, setDays] = useState(3)
@@ -40,55 +44,44 @@ export default function TripPlanner() {
   }
 
   return (
-    <section id="planner" className="py-20 bg-paper-dim">
+    <section id="planner" className="py-24 bg-paper-dim border-y border-ink/10">
       <div className="max-w-4xl mx-auto px-6 sm:px-8">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl">✈️</span>
-          <h2 className="font-display text-3xl font-semibold text-ink">Build My Trip</h2>
-        </div>
-        <p className="text-ink/60 mb-8">Tell WanderAI the shape of your trip and get a sample day-by-day plan.</p>
+        <p className="kicker mb-4">
+          <b>04</b> &nbsp;— Build my trip
+        </p>
+        <h2 className="font-display text-4xl sm:text-5xl leading-[0.98] text-ink mb-4">
+          Shape the trip, get a <em className="text-compass-teal">day-by-day</em> plan
+        </h2>
+        <p className="text-ink/65 mb-10 max-w-xl">
+          Tell WanderAI the shape of your trip and get a sample itinerary built from real places.
+        </p>
 
-        <form onSubmit={createTrip} className="bg-white rounded-2xl border border-ink/10 p-6 sm:p-8 space-y-6">
+        <form
+          onSubmit={createTrip}
+          className="rounded-[22px] border border-ink/10 bg-white/50 p-6 sm:p-8 space-y-6"
+        >
           <div>
-            <label className="text-sm font-medium text-ink/70 mb-1.5 block">📍 Destination</label>
+            <label className={LABEL}>Destination</label>
             <input
               value={destinationQuery}
               onChange={(e) => setDestinationQuery(e.target.value)}
               placeholder="e.g. Kerala, Paris, Tokyo..."
-              className="w-full rounded-xl border border-ink/15 px-4 py-2.5 outline-none focus:border-ink/40"
+              className={FIELD}
             />
           </div>
 
           <div className="grid sm:grid-cols-3 gap-5">
             <div>
-              <label className="text-sm font-medium text-ink/70 mb-1.5 block">📅 Number of days</label>
-              <input
-                type="number"
-                min={1}
-                max={7}
-                value={days}
-                onChange={(e) => setDays(e.target.value)}
-                className="w-full rounded-xl border border-ink/15 px-4 py-2.5 outline-none focus:border-ink/40"
-              />
+              <label className={LABEL}>Number of days</label>
+              <input type="number" min={1} max={7} value={days} onChange={(e) => setDays(e.target.value)} className={FIELD} />
             </div>
             <div>
-              <label className="text-sm font-medium text-ink/70 mb-1.5 block">👥 Travelers</label>
-              <input
-                type="number"
-                min={1}
-                max={12}
-                value={travelers}
-                onChange={(e) => setTravelers(e.target.value)}
-                className="w-full rounded-xl border border-ink/15 px-4 py-2.5 outline-none focus:border-ink/40"
-              />
+              <label className={LABEL}>Travelers</label>
+              <input type="number" min={1} max={12} value={travelers} onChange={(e) => setTravelers(e.target.value)} className={FIELD} />
             </div>
             <div>
-              <label className="text-sm font-medium text-ink/70 mb-1.5 block">💰 Budget</label>
-              <select
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="w-full rounded-xl border border-ink/15 px-4 py-2.5 outline-none focus:border-ink/40 bg-white"
-              >
+              <label className={LABEL}>Budget</label>
+              <select value={budget} onChange={(e) => setBudget(e.target.value)} className={FIELD}>
                 {BUDGETS.map((b) => (
                   <option key={b}>{b}</option>
                 ))}
@@ -97,7 +90,7 @@ export default function TripPlanner() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-ink/70 mb-2 block">❤️ Travel style</label>
+            <label className={LABEL}>Travel style</label>
             <TravelStyleSelector value={style} onChange={setStyle} />
           </div>
 
@@ -105,16 +98,20 @@ export default function TripPlanner() {
 
           <button
             type="submit"
-            className="w-full rounded-full py-3 font-semibold text-ink transition-transform hover:scale-[1.01]"
-            style={{ background: 'var(--accent, #E8A33D)' }}
+            className="inline-flex items-center gap-3 rounded-full pl-6 pr-2 py-2 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(135deg, #E8732A, #F3A15E)',
+              boxShadow: '0 10px 26px rgba(232,115,42,0.32)',
+            }}
           >
-            ✨ Create My Trip
+            Create my trip
+            <span className="grid place-items-center w-9 h-9 rounded-full bg-white/90 text-compass-gold">→</span>
           </button>
         </form>
 
         {itinerary && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-10">
-            <h3 className="font-display text-2xl font-semibold text-ink mb-5">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-12">
+            <h3 className="font-display text-3xl text-ink mb-6">
               Your {itinerary.plan.length}-day {itinerary.place.name} itinerary
             </h3>
             <Itinerary days={itinerary.plan} />
